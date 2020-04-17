@@ -6,5 +6,5 @@ py/data
 
 py/__pycache__/
 
-py/lib/models/
+py/lib/models/__pycache__/
 
