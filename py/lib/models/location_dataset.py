@@ -47,8 +47,8 @@ class LocationDataset(Dataset):
         """
         返回image, target
         image：图像数据
-        target：[S, S, C + B*5]
-        单个网格信息示例：[C1, C2, C3, ..., Cn, x, y, w, h,  confidence, x, y, w, h,  confidence, ...]
+        target：[S, S, C + 5]
+        单个网格信息示例：[C1, C2, C3, ..., Cn, x, y, w, h,  confidence]
         """
         assert index < len(self.jpeg_path_list), 'image length: %d' % len(self.jpeg_path_list)
 
@@ -69,7 +69,7 @@ class LocationDataset(Dataset):
         grid_h = img_h / self.S
         grid_w = img_w / self.S
 
-        target = torch.zeros((self.S, self.S, self.B * 5 + self.C))
+        target = torch.zeros((self.S, self.S, self.C + 5))
         bndboxs, name_list = util.parse_location_xml(self.xml_path_list[index])
         # 缩放边界框坐标（x, y, w, h）
         bndboxs[:, 0] = bndboxs[:, 0] * ratio_w
@@ -106,6 +106,8 @@ class LocationDataset(Dataset):
                 target[grid_x, grid_y, self.C + 1] = y
                 target[grid_x, grid_y, self.C + 2] = w
                 target[grid_x, grid_y, self.C + 3] = h
+                # 置信度
+                target[grid_x, grid_y, self.C + 4] = 1
 
                 grid_nums[grid_x, grid_y] += 1
 
