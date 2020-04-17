@@ -14,7 +14,7 @@ from models.basic_conv2d import BasicConv2d
 
 class YOLO_v1(nn.Module):
 
-    def __init__(self):
+    def __init__(self, S, B, C):
         super(YOLO_v1, self).__init__()
         conv_block = BasicConv2d
 
@@ -58,21 +58,25 @@ class YOLO_v1(nn.Module):
             nn.Dropout(),
             nn.Linear(7 * 7 * 1024, 4096),
             nn.ReLU(inplace=True),
-            nn.Linear(4096, 7 * 7 * 30)
+            nn.Linear(4096, S * S * (B * 5 + C))
         )
+
+        self.S = S
+        self.B = B
+        self.C = C
 
     def forward(self, x):
         x = self.features(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)
-        return x
+        return x.reshape(-1, self.B * 5 + self.C, self.S, self.S)
 
 
 if __name__ == '__main__':
     data = torch.randn((1, 3, 448, 448))
     # data = torch.randn((1, 3, 224, 224))
-    model = YOLO_v1()
+    model = YOLO_v1(7, 2, 3)
 
     outputs = model(data)
     print(outputs.shape)
