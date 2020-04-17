@@ -9,12 +9,13 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from models.basic_conv2d import BasicConv2d
 
 
 class YOLO_v1(nn.Module):
 
-    def __init__(self, S, B, C):
+    def __init__(self, S=7, B=2, C=20):
         super(YOLO_v1, self).__init__()
         conv_block = BasicConv2d
 
@@ -66,11 +67,15 @@ class YOLO_v1(nn.Module):
         self.C = C
 
     def forward(self, x):
+        N = x.shape[0]
+
         x = self.features(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)
-        return x.reshape(-1, self.B * 5 + self.C, self.S, self.S)
+        x = torch.sigmoid(x)
+
+        return x.reshape(N, self.S * self.S, self.B * 5 + self.C)
 
 
 if __name__ == '__main__':
