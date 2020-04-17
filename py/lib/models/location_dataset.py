@@ -10,6 +10,7 @@
 import cv2
 import os
 import torch
+from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 import util
 import torchvision.transforms as transforms
@@ -47,8 +48,8 @@ class LocationDataset(Dataset):
         """
         返回image, target
         image：图像数据
-        target：[S, S, C + 5]
-        单个网格信息示例：[C1, C2, C3, ..., Cn, x, y, w, h,  confidence]
+        target：[S*S, C + B*5]
+        单个网格信息示例：[C1, C2, C3, ..., Cn, confidenceA, confidenceB, .., xA, yA, wA, hA, xB, yB, wB, hB, ...]
         """
         assert index < len(self.jpeg_path_list), 'image length: %d' % len(self.jpeg_path_list)
 
@@ -69,7 +70,7 @@ class LocationDataset(Dataset):
         grid_h = img_h / self.S
         grid_w = img_w / self.S
 
-        target = torch.zeros((self.S, self.S, self.C + 5))
+        target = torch.zeros((self.S * self.S, self.C + self.B * 5))
         bndboxs, name_list = util.parse_location_xml(self.xml_path_list[index])
         # 缩放边界框坐标（x, y, w, h）
         bndboxs[:, 0] = bndboxs[:, 0] * ratio_w
@@ -100,14 +101,15 @@ class LocationDataset(Dataset):
                 # 转换类别和标签
                 cate_idx = cate_list.index(name)
                 # 指定类别概率为1
-                target[grid_x, grid_y, cate_idx] = 1
-                # 相应的边界框坐标
-                target[grid_x, grid_y, self.C] = x
-                target[grid_x, grid_y, self.C + 1] = y
-                target[grid_x, grid_y, self.C + 2] = w
-                target[grid_x, grid_y, self.C + 3] = h
-                # 置信度
-                target[grid_x, grid_y, self.C + 4] = 1
+                target[grid_x * grid_y, cate_idx] = 1
+                for j in range(self.B):
+                    # 置信度
+                    target[grid_x * grid_y, self.C + j] = 1
+                    # 相应的边界框坐标
+                    target[grid_x * grid_y, self.C + self.B + 4 * j] = x
+                    target[grid_x * grid_y, self.C + self.B + 4 * j + 1] = y
+                    target[grid_x * grid_y, self.C + self.B + 4 * j + 2] = w
+                    target[grid_x * grid_y, self.C + self.B + 4 * j + 3] = h
 
                 grid_nums[grid_x, grid_y] += 1
 
@@ -127,10 +129,16 @@ if __name__ == '__main__':
     ])
 
     data_set = LocationDataset(root_dir, transform, 7, 2, 3)
-    print(data_set)
-    print(len(data_set))
+    # print(data_set)
+    # print(len(data_set))
+    #
+    # image, target = data_set.__getitem__(3)
+    # print(image.shape)
+    # print(target.shape)
+    # print(target)
 
-    image, target = data_set.__getitem__(3)
-    print(image.shape)
-    print(target.shape)
-    print(target)
+    data_loader = DataLoader(data_set, shuffle=True, batch_size=8, num_workers=8)
+    items = next(iter(data_loader))
+    inputs, labels = items
+    print(inputs.shape)
+    print(labels.shape)
