@@ -20,7 +20,7 @@ cate_list = ['cucumber', 'eggplant', 'mushroom']
 
 class LocationDataset(Dataset):
 
-    def __init__(self, root_dir, transform, S, B, C):
+    def __init__(self, root_dir, transform=None, S=7, B=2, C=20):
         """
         保存图像以及标注框性能
         :param root_dir: 根目录
@@ -38,7 +38,7 @@ class LocationDataset(Dataset):
         jpeg_path_list = []
         xml_path_list = []
         for name in cate_list:
-            for i in range(60):
+            for i in range(1, 61):
                 jpeg_path_list.append(os.path.join(root_dir, '%s_%d.jpg' % (name, i)))
                 xml_path_list.append(os.path.join(root_dir, '%s_%d.xml' % (name, i)))
         self.jpeg_path_list = jpeg_path_list
@@ -53,6 +53,7 @@ class LocationDataset(Dataset):
         """
         assert index < len(self.jpeg_path_list), 'image length: %d' % len(self.jpeg_path_list)
 
+        # print(self.jpeg_path_list[index])
         image = cv2.imread(self.jpeg_path_list[index])
         img_h, img_w = image.shape[:2]
         ratio_h = 1
