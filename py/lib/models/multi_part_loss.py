@@ -91,11 +91,11 @@ class MultiPartLoss(nn.Module):
                 # 是否存在置信度（如果存在，则target的置信度必然大于0）
                 is_obj = target_single_confidences[0] > 0
                 # 计算置信度损失 假定所有目标都不存在
-                total_loss += self.noobj * self.confidence_loss(pred_single_confidences, target_single_confidences)
+                total_loss += self.noobj * self.sum_squared_error(pred_single_confidences, target_single_confidences)
                 if is_obj:
                     # 如果存在
                     # 计算分类损失
-                    total_loss += self.prob_loss(pred_single_probs, target_single_probs)
+                    total_loss += self.sum_squared_error(pred_single_probs, target_single_probs)
 
                     # 计算所有预测边界框和标注边界框的IoU
                     pred_single_bboxs = pred_single_bboxs.reshape(-1, 4)
@@ -106,18 +106,15 @@ class MultiPartLoss(nn.Module):
                     bbox_idx = torch.argmax(scores)
                     # 计算置信度损失
                     total_loss += (1 - self.noobj) * \
-                                  self.confidence_loss(pred_single_confidences[bbox_idx],
-                                                       target_single_confidences[bbox_idx])
+                                  self.sum_squared_error(pred_single_confidences[bbox_idx],
+                                                         target_single_confidences[bbox_idx])
                     # 计算边界框损失
                     total_loss += self.coord * self.bbox_loss(pred_single_bboxs[bbox_idx].reshape(-1, 4),
                                                               target_single_bboxs[bbox_idx].reshape(-1, 4))
 
         return total_loss / N
 
-    def confidence_loss(self, preds, targets):
-        return torch.sum((preds - targets) ** 2)
-
-    def prob_loss(self, preds, targets):
+    def sum_squared_error(self, preds, targets):
         return torch.sum((preds - targets) ** 2)
 
     def bbox_loss(self, pred_boxs, target_boxs):
@@ -144,8 +141,8 @@ class MultiPartLoss(nn.Module):
         :param target_box: 大小为[N, 4] (center_x, center_y , w, h)
         :return: [N]
         """
-        pred_boxs = pred_boxs.numpy()
-        target_boxs = target_boxs.numpy()
+        pred_boxs = pred_boxs.detach().numpy()
+        target_boxs = target_boxs.detach().numpy()
 
         xA = np.maximum(pred_boxs[:, 0] - pred_boxs[:, 2] / 2, target_boxs[:, 0] - target_boxs[:, 2] / 2)
         yA = np.maximum(pred_boxs[:, 1] - pred_boxs[:, 3] / 2, target_boxs[:, 1] - target_boxs[:, 3] / 2)
