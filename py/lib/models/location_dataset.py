@@ -93,7 +93,7 @@ class LocationDataset(Dataset):
             grid_x = int(box_x / grid_w)
             grid_y = int(box_y / grid_h)
             # 行/列从０开始计数
-            print(grid_x + 1, grid_y + 1)
+            # print(grid_x + 1, grid_y + 1)
             # 边界框中心相对于网格的比例（0,1）
             x = (box_x % grid_w) / grid_w
             y = (box_y % grid_h) / grid_h
