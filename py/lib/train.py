@@ -32,7 +32,7 @@ def load_data(data_root_dir, S=7, B=2, C=20):
     ])
 
     data_set = LocationDataset(data_root_dir, transform=transform, S=S, B=B, C=C)
-    data_loader = DataLoader(data_set, batch_size=1, shuffle=False, num_workers=0)
+    data_loader = DataLoader(data_set, batch_size=8, shuffle=True, num_workers=8)
 
     return data_loader
 
@@ -69,9 +69,7 @@ def train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epoc
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(inputs)
-                    # print(outputs.shape)
                     loss = criterion(outputs, labels)
-                    print(loss.item())
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -108,14 +106,14 @@ if __name__ == '__main__':
     device = "cpu"
 
     data_loader = load_data('../data/training_images', S=7, B=2, C=3)
-    print(len(data_loader))
+    # print(len(data_loader))
 
     model = YOLO_v1(S=7, B=2, C=3)
     model = model.to(device)
 
     criterion = MultiPartLoss(S=7, B=2, C=3)
     optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
-    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.9)
 
     best_model = train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epochs=25, device=device)
 
