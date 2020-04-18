@@ -69,7 +69,8 @@ def parse_location_xml(xml_path):
         else:
             pass
 
-        return np.array(bndboxs), name_list
+        bndboxs = np.array(bndboxs)
+        return bndboxs, name_list
 
 
 def save_model(model, model_save_path):

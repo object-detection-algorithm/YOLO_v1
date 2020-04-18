@@ -8,9 +8,11 @@
 """
 
 import copy
+import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+cate_list = ['cucumber', 'eggplant', 'mushroom']
 
 def plot_loss(loss_list):
     x = list(range(len(loss_list)))
@@ -31,6 +33,32 @@ def plot_box(img, bndboxs, name_list):
         xmin, ymin, xmax, ymax = bndbox
         cv2.rectangle(dst, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=1)
         cv2.putText(dst, name, (xmin, ymax), 1, cv2.FONT_HERSHEY_PLAIN, (255, 0, 0), thickness=1)
+
+    return dst
+
+
+def plot_bboxs(img, bndboxs, name_list, pred_boxs, pred_cates, pred_probs):
+    dst = copy.deepcopy(img)
+
+    for i in range(len(name_list)):
+        bndbox = bndboxs[i]
+        name = name_list[i]
+
+        xmin, ymin, xmax, ymax = bndbox
+        cv2.rectangle(dst, (xmin, ymin), (xmax, ymax), (0, 255, 0), thickness=1)
+        cv2.putText(dst, name, (xmin, ymax), 1, cv2.FONT_HERSHEY_PLAIN, (255, 0, 0), thickness=1)
+
+    for i in range(len(pred_probs)):
+        cate = pred_cates[i]
+        prob = pred_probs[i]
+        bbox = pred_boxs[i]
+
+        if prob < 0.5:
+            continue
+
+        xmin, ymin, xmax, ymax = np.array(bbox, dtype=np.int)
+        cv2.rectangle(dst, (xmin, ymin), (xmax, ymax), (255, 0, 0), thickness=1)
+        cv2.putText(dst, '%s_%f' % (cate_list[cate], prob), (xmin, ymax), 1, cv2.FONT_HERSHEY_PLAIN, (255, 0, 0), thickness=1)
 
     return dst
 

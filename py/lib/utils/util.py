@@ -74,6 +74,46 @@ def parse_output(outputs, S, B, C):
     return cates.reshape(N, S * S), cate_probs(N, S * S), obj_boxs(N, S * S, 4)
 
 
+def bbox_corner_to_center(bboxs):
+    """
+    [xmin, ymin, xmax, ymax] -> [x_center, y_center, w, h]
+    :param bboxs: [N, 4]
+    """
+    assert len(bboxs.shape) == 2
+    tmp = np.zeros(bboxs.shape)
+
+    # w
+    tmp[:, 2] = bboxs[:, 2] - bboxs[:, 0]
+    # h
+    tmp[:, 3] = bboxs[:, 3] - bboxs[:, 1]
+    # x_center
+    tmp[:, 0] = bboxs[:, 0] + tmp[:, 2] / 2
+    # y_center
+    tmp[:, 1] = bboxs[:, 1] + tmp[:, 3] / 2
+
+    return tmp
+
+
+def bbox_center_to_corner(bboxs):
+    """
+    [x_center, y_center, w, h] -> [xmin, ymin, xmax, ymax]
+    :param bboxs: [N, 4]
+    """
+    assert len(bboxs.shape) == 2
+    tmp = np.zeros(bboxs.shape)
+
+    # xmin
+    tmp[:, 0] = bboxs[:, 0] - bboxs[:, 2] / 2
+    # ymin
+    tmp[:, 1] = bboxs[:, 1] - bboxs[:, 3] / 2
+    # xmax
+    tmp[:, 2] = bboxs[:, 0] + bboxs[:, 2] / 2
+    # ymax
+    tmp[:, 3] = bboxs[:, 1] + bboxs[:, 3] / 2
+
+    return tmp
+
+
 def nms(cates, probs, bboxs):
     """
     non-maximum suppression

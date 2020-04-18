@@ -9,8 +9,8 @@
 
 import time
 import cv2
+import numpy as np
 import torch
-from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
 from utils import file
@@ -32,47 +32,113 @@ def load_data(img_path, xml_path):
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-    img = cv2.imread(img_path)
+    src = cv2.imread(img_path)
     bndboxs, name_list = file.parse_location_xml(xml_path)
+    # dst = draw.plot_box(src, bndboxs, name_list)
+    # draw.show(dst)
 
-    return img, bndboxs, name_list
+    h, w = src.shape[:2]
+    img = transform(src)
+    scale_h, scale_w = img.shape[1:]
+    ratio_h = scale_h / h
+    ratio_w = scale_w / w
+
+    scale_bndboxs = torch.from_numpy(bndboxs).float()
+    scale_bndboxs[:, 0] = scale_bndboxs[:, 0] * ratio_w
+    scale_bndboxs[:, 1] = scale_bndboxs[:, 1] * ratio_h
+    scale_bndboxs[:, 2] = scale_bndboxs[:, 2] * ratio_w
+    scale_bndboxs[:, 3] = scale_bndboxs[:, 3] * ratio_h
+    scale_bndboxs = scale_bndboxs.int().numpy()
+
+    img = img.unsqueeze(0)
+    data_dict = {}
+    data_dict['src'] = src
+    data_dict['src_size'] = (h, w)
+    data_dict['bndboxs'] = bndboxs
+    data_dict['img'] = img
+    data_dict['scale_size'] = (scale_h, scale_w)
+    data_dict['ratio'] = (ratio_h, ratio_w)
+    return img, scale_bndboxs, name_list, data_dict
 
 
-def val_model(data_loader, model, device=None):
-    since = time.time()
+def deform_bboxs(pred_bboxs, data_dict):
+    """
+    :param pred_bboxs: [S*S, 4]
+    :return:
+    """
+    scale_h, scale_w = data_dict['scale_size']
+    grid_w = scale_w / S
+    grid_h = scale_h / S
 
-    model.eval()  # Set model to evaluate mode
+    bboxs = torch.zeros(pred_bboxs.shape)
+    for i in range(S * S):
+        row = int(i / S)
+        col = int(i % S)
 
-    # Iterate over data.
-    for inputs, labels in data_loader:
-        inputs = inputs.to(device)
-        labels = labels.to(device)
+        x_center, y_center, box_w, box_h = pred_bboxs[i]
+        bboxs[i, 0] = (row + x_center) * grid_w
+        bboxs[i, 1] = (col + y_center) * grid_h
+        bboxs[i, 2] = box_w * scale_w
+        bboxs[i, 3] = box_h * scale_h
+    # (x_center, y_center, w, h) -> (xmin, ymin, xmax, ymax)
+    bboxs = util.bbox_center_to_corner(bboxs)
 
-        outputs = model(inputs)
+    ratio_h, ratio_w = data_dict['ratio']
+    bboxs[:, 0] /= ratio_w
+    bboxs[:, 1] /= ratio_h
+    bboxs[:, 2] /= ratio_w
+    bboxs[:, 3] /= ratio_h
 
-        # 计算mAP
-        cates, probs, bboxs = util.parse_output(outputs, S, B, C)
-        util.nms(cates, probs, bboxs)
+    # 最大最小值
+    h, w = data_dict['src_size']
+    bboxs[:, 0] = np.maximum(bboxs[:, 0], 0)
+    bboxs[:, 1] = np.maximum(bboxs[:, 1], 0)
+    bboxs[:, 2] = np.minimum(bboxs[:, 2], w)
+    bboxs[:, 3] = np.minimum(bboxs[:, 3], h)
 
-    print()
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    return np.array(bboxs, dtype=np.int)
 
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # device = "cpu"
 
-    img, bndboxs, name_list = load_data('../imgs/cucumber_9.jpg', '../imgs/cucumber_9.xml')
-    dst = draw.plot_box(img, bndboxs, name_list)
-    draw.show(dst)
+    img, bndboxs, name_list, data_dict = load_data('../imgs/cucumber_9.jpg', '../imgs/cucumber_9.xml')
 
-    # model_path = '../models/checkpoint_yolo_v1_24.pth'
-    # model = YOLO_v1(S=7, B=2, C=3)
-    # model.load_state_dict(torch.load(model_path))
-    # model.eval()
-    # for param in model.parameters():
-    #     param.requires_grad = False
-    # model = model.to(device)
-    #
-    # val_model(data_loader, model, device=device)
+    model_path = './models/checkpoint_yolo_v1_24.pth'
+    model = YOLO_v1(S=7, B=2, C=3)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+    for param in model.parameters():
+        param.requires_grad = False
+    model = model.to(device)
+
+    # 缩放图像
+    outputs = model.forward(img.to(device)).cpu().squeeze(0)
+    print(outputs.shape)
+
+    # (S*S, C)
+    pred_probs = outputs[:, :C]
+    # (S*S, C:(C+B))
+    pred_confidences = outputs[:, C:(C + B)]
+    # (S*S, (C+B):(C+5B))
+    pred_bboxs = outputs[:, (C + B):]
+
+    # 计算类别
+    pred_cates = torch.argmax(pred_probs, dim=1)
+    # 计算分类概率
+    pred_confidences_idxs = torch.argmax(pred_confidences, dim=1)
+    pred_cate_probs = pred_probs[range(S * S), pred_cates] \
+                      * pred_confidences[range(S * S), pred_confidences_idxs]
+    # 计算预测边界框
+    pred_cate_bboxs = torch.zeros(S * S, 4)
+    pred_cate_bboxs[:, 0] = pred_bboxs[range(S * S), pred_confidences_idxs * 4]
+    pred_cate_bboxs[:, 1] = pred_bboxs[range(S * S), pred_confidences_idxs * 4 + 1]
+    pred_cate_bboxs[:, 2] = pred_bboxs[range(S * S), pred_confidences_idxs * 4 + 2]
+    pred_cate_bboxs[:, 3] = pred_bboxs[range(S * S), pred_confidences_idxs * 4 + 3]
+
+    # 预测边界框的缩放，回到原始图像
+    pred_bboxs = deform_bboxs(pred_cate_bboxs, data_dict)
+    # 在原图绘制标注边界框和预测边界框
+    dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], name_list, pred_bboxs, pred_cates, pred_cate_probs)
+    draw.show(dst)
