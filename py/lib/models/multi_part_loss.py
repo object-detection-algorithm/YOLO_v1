@@ -26,10 +26,10 @@ class MultiPartLoss(nn.Module):
     def forward(self, preds, targets):
         """
         :param preds: (N, S*S, B*5+C) 其中
-        [N, S*S, :C] 表示每个网格中预测目标的类别（如果存在为[0, self.C-1]，不存在为-1）
-        [N, S*S: C:(C+B)] 表示每个网格中目标的置信度（如果存在为1，不存在为-1）
+        [N, S*S, :C] 表示每个网格中预测目标的类别（如果存在则指定类别设置为概率１，不存在为0）
+        [N, S*S: C:(C+B)] 表示每个网格中目标的置信度（如果存在为1，不存在为0）
         [N, S*S, (C+B):(C+B*5)] 表示网格中目标的边界框（center_x/center_y/w/h，如果不存在则为0）
-        :param targets: (N, S*S*(B*5+C))
+        :param targets: (N, S*S, (B*5+C))
         :return:
         """
         # ## 预测
@@ -90,7 +90,7 @@ class MultiPartLoss(nn.Module):
 
                 # 是否存在置信度（如果存在，则target的置信度必然大于0）
                 is_obj = target_single_confidences[0] > 0
-                # 计算置信度损失 假定所有目标都不存在
+                # 计算置信度损失 假定该网格不存在对象
                 total_loss += self.noobj * self.sum_squared_error(pred_single_confidences, target_single_confidences)
                 if is_obj:
                     # 如果存在
@@ -126,11 +126,8 @@ class MultiPartLoss(nn.Module):
         pred_boxs = pred_boxs.float()
         target_boxs = target_boxs.float()
 
-        loss += torch.sum((pred_boxs[:, 0] - target_boxs[:, 0]) ** 2)
-        loss += torch.sum((pred_boxs[:, 1] - target_boxs[:, 1]) ** 2)
-
-        loss += torch.sum((torch.sqrt(pred_boxs[:, 2]) - torch.sqrt(target_boxs[:, 2])) ** 2)
-        loss += torch.sum((torch.sqrt(pred_boxs[:, 3]) - torch.sqrt(target_boxs[:, 3])) ** 2)
+        loss += self.sum_squared_error(pred_boxs[:, :2], target_boxs[:, :2])
+        loss += self.sum_squared_error(torch.sqrt(pred_boxs[:, 2:4]), torch.sqrt(target_boxs[:, 2:4]))
 
         return loss
 
@@ -141,8 +138,8 @@ class MultiPartLoss(nn.Module):
         :param target_box: 大小为[N, 4] (center_x, center_y , w, h)
         :return: [N]
         """
-        pred_boxs = pred_boxs.detach().numpy()
-        target_boxs = target_boxs.detach().numpy()
+        pred_boxs = pred_boxs.cpu().detach().numpy()
+        target_boxs = target_boxs.cpu().detach().numpy()
 
         xA = np.maximum(pred_boxs[:, 0] - pred_boxs[:, 2] / 2, target_boxs[:, 0] - target_boxs[:, 2] / 2)
         yA = np.maximum(pred_boxs[:, 1] - pred_boxs[:, 3] / 2, target_boxs[:, 1] - target_boxs[:, 3] / 2)
