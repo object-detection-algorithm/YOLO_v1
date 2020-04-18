@@ -67,6 +67,11 @@ class YOLO_v1(nn.Module):
         self.C = C
 
     def forward(self, x):
+        """
+        :param x: [N, C, H, W]
+        :return:
+        """
+        assert len(x.shape) == 4
         N = x.shape[0]
 
         x = self.features(x)
@@ -79,8 +84,8 @@ class YOLO_v1(nn.Module):
 
 
 if __name__ == '__main__':
-    data = torch.randn((1, 3, 448, 448))
-    # data = torch.randn((1, 3, 224, 224))
+    # data = torch.randn((1, 3, 448, 448))
+    data = torch.randn((1, 3, 224, 224))
     model = YOLO_v1(7, 2, 3)
 
     outputs = model(data)
