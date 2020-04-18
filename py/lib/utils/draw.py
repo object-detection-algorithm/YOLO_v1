@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 cate_list = ['cucumber', 'eggplant', 'mushroom']
 
+
 def plot_loss(loss_list):
     x = list(range(len(loss_list)))
     fg = plt.figure()
@@ -57,8 +58,9 @@ def plot_bboxs(img, bndboxs, name_list, pred_boxs, pred_cates, pred_probs):
             continue
 
         xmin, ymin, xmax, ymax = np.array(bbox, dtype=np.int)
-        cv2.rectangle(dst, (xmin, ymin), (xmax, ymax), (255, 0, 0), thickness=1)
-        cv2.putText(dst, '%s_%f' % (cate_list[cate], prob), (xmin, ymax), 1, cv2.FONT_HERSHEY_PLAIN, (255, 0, 0), thickness=1)
+        cv2.rectangle(dst, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=1)
+        cv2.putText(dst, '%s_%f' % (cate_list[cate], prob), (xmin, ymax), 1, cv2.FONT_HERSHEY_PLAIN, (0, 0, 255),
+                    thickness=1)
 
     return dst
 
