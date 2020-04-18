@@ -143,4 +143,5 @@ if __name__ == '__main__':
     pred_bboxs = deform_bboxs(pred_cate_bboxs, data_dict)
     # 在原图绘制标注边界框和预测边界框
     dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], data_dict['name_list'], pred_bboxs, pred_cates, pred_cate_probs)
+    cv2.imwrite('./detect.png', dst)
     draw.show(dst)
