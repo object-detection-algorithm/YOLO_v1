@@ -19,12 +19,6 @@ def check_dir(data_dir):
         os.mkdir(data_dir)
 
 
-def parse_car_csv(csv_dir):
-    csv_path = os.path.join(csv_dir, 'car.csv')
-    samples = np.loadtxt(csv_path, dtype=np.str)
-    return samples
-
-
 def parse_location_xml(xml_path):
     """
     解析xml文件，返回标注边界框信息（中心点坐标 + 长宽）
@@ -110,9 +104,16 @@ def compute_ious(rects, bndboxs):
 
 
 def save_model(model, model_save_path):
-    # 保存最好的模型参数
-    check_dir('./models')
     torch.save(model.state_dict(), model_save_path)
+
+
+def save_checkpoint(model_save_path, epoch, model, optimizer, loss):
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss
+    }, model_save_path)
 
 
 def plot_loss(loss_list):

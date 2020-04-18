@@ -12,7 +12,7 @@ import os
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
-import util
+from utils import util
 import torchvision.transforms as transforms
 
 cate_list = ['cucumber', 'eggplant', 'mushroom']

@@ -7,20 +7,21 @@
 @description: 
 """
 
-import os
 import copy
 import time
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
-import torchvision.models as models
 
-import util
+from utils import util
 from models.location_dataset import LocationDataset
 from models.yolo_v1 import YOLO_v1
 from models.multi_part_loss import MultiPartLoss
+
+S = 7
+B = 2
+C = 3
 
 
 def load_data(data_root_dir, S=7, B=2, C=20):
@@ -40,22 +41,21 @@ def load_data(data_root_dir, S=7, B=2, C=20):
 def train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epochs=25, device=None):
     since = time.time()
 
-    # best_model_weights = copy.deepcopy(model.state_dict())
-    # best_acc = 0.0
+    best_loss = 100.0
+    best_model_weights = copy.deepcopy(model.state_dict())
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
         # Each epoch has a training and validation phase
-        for phase in ['train', 'val']:
+        for phase in ['train']:
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
                 model.eval()  # Set model to evaluate mode
 
             running_loss = 0.0
-            running_corrects = 0
 
             # Iterate over data.
             for inputs, labels in data_loader:
@@ -83,40 +83,37 @@ def train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epoc
 
             epoch_loss = running_loss / len(data_loader.dataset)
             print('{} Loss: {:.4f}'.format(phase, epoch_loss))
-            exit(0)
+
             # deep copy the model
-            # if phase == 'val' and epoch_acc > best_acc:
-            #     best_acc = epoch_acc
-            #     best_model_weights = copy.deepcopy(model.state_dict())
+            if running_loss > best_loss:
+                best_loss = running_loss
+                best_model_weights = copy.deepcopy(model.state_dict())
+
+                util.check_dir('../models')
+                util.save_checkpoint('../models/checkpoint_yolo_v1_%d.pth' % (epoch), epoch, model, optimizer, loss)
 
         print()
 
     time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
-    # print('Best val Acc: {:4f}'.format(best_acc))
+    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
     # load best model weights
-    # model.load_state_dict(best_model_weights)
+    model.load_state_dict(best_model_weights)
     return model
 
 
 if __name__ == '__main__':
-    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    device = "cpu"
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # device = "cpu"
 
-    data_loader = load_data('../data/training_images', S=7, B=2, C=3)
+    data_loader = load_data('../data/training_images', S=S, B=B, C=C)
     # print(len(data_loader))
 
-    model = YOLO_v1(S=7, B=2, C=3)
+    model = YOLO_v1(S=S, B=B, C=C)
     model = model.to(device)
 
-    criterion = MultiPartLoss(S=7, B=2, C=3)
+    criterion = MultiPartLoss(S=S, B=B, C=C)
     optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
     lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.9)
 
-    best_model = train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epochs=25, device=device)
-
-    # 保存最好的模型参数
-    # util.check_dir('./models')
-    # torch.save(best_model.state_dict(), 'models/alexnet_car.pth')
+    train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epochs=25, device=device)
