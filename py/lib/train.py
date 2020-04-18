@@ -23,8 +23,10 @@ S = 7
 B = 2
 C = 3
 
+cate_list = ['cucumber', 'eggplant', 'mushroom']
 
-def load_data(data_root_dir, S=7, B=2, C=20):
+
+def load_data(data_root_dir, cate_list, S=7, B=2, C=20):
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize((448, 448)),
@@ -32,7 +34,7 @@ def load_data(data_root_dir, S=7, B=2, C=20):
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-    data_set = LocationDataset(data_root_dir, transform=transform, S=S, B=B, C=C)
+    data_set = LocationDataset(data_root_dir, cate_list, transform=transform, S=S, B=B, C=C)
     data_loader = DataLoader(data_set, batch_size=8, shuffle=True, num_workers=8)
 
     return data_loader
@@ -108,7 +110,7 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # device = "cpu"
 
-    data_loader = load_data('../data/training_images', S=S, B=B, C=C)
+    data_loader = load_data('../data/training_images', cate_list, S=S, B=B, C=C)
     # print(len(data_loader))
 
     model = YOLO_v1(S=S, B=B, C=C)
