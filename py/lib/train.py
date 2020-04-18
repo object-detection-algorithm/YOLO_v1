@@ -118,6 +118,6 @@ if __name__ == '__main__':
 
     criterion = MultiPartLoss(S=S, B=B, C=C)
     optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
-    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.9)
+    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.96)
 
-    train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epochs=25, device=device)
+    train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epochs=50, device=device)
