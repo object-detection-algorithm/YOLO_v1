@@ -8,6 +8,7 @@
 """
 
 import numpy as np
+import torch
 
 
 def iou(pred_box, target_box):
@@ -46,18 +47,39 @@ def parse_output(outputs, S, B, C):
     """
     每个网格保存置信度最高的检测边界框
     :param outputs: (N, S*S, B*5+C)
-    :return: probs, bboxs
-    probs: (N, S*S, C)
-    bboxs: (N, S*S, 5)
+    :return: cates, probs, bboxs
+    cates: (N, S*S)
+    probs: (N, S*S)
+    bboxs: (N, S*S, 4)
     """
     N = outputs.shape[0]
 
-    probs = outputs[:, :, :C]
+    # (N*S*S, C)
+    probs = outputs[:, :, :C].reshape(-1, C)
+    # (N*S*S, B)
     confidences = outputs[:, :, C:(C + B)].reshape(-1, B)
+    # (N*S*S, 4*B)
     bboxs = outputs[:, :, (C + B):].reshape(-1, 4 * B)
 
+    # 计算每个网格所属类别 (N*S*S)
+    cates = torch.argmax(probs, dim=1)
+    # 计算每个网格最高置信度 (N*S*S)
     idxs = torch.argmax(confidences, dim=1)
 
-    probs *= confidences[range(len(idxs)), idxs]
-    obj_boxs = bboxs[range(len(idxs)), idxs]
-    return probs, obj_boxs.reshape(N, S * S, -1)
+    # 计算分类概率 (N*S*S)
+    cate_probs = probs[range(len(cates)), cates] * confidences[range(len(idxs)), idxs]
+    # 计算对应边界框坐标 (N*S*S, 4)
+    obj_boxs = bboxs[range(len(idxs)), idxs * 4: (idxs + 1) * 4]
+
+    return cates.reshape(N, S * S), cate_probs(N, S * S), obj_boxs(N, S * S, 4)
+
+
+def nms(cates, probs, bboxs):
+    """
+    non-maximum suppression
+    :param cates:
+    :param probs:
+    :param bboxs:
+    :return:
+    """
+    pass

@@ -42,11 +42,12 @@ def parse_location_xml(xml_path):
                     xmax = int(bndbox['xmax'])
                     ymax = int(bndbox['ymax'])
 
-                    w = xmax - xmin
-                    h = ymax - ymin
-                    x = xmin + w / 2
-                    y = ymin + h / 2
-                    bndboxs.append((x, y, w, h))
+                    bndboxs.append((xmin, ymin, xmax, ymax))
+                    # w = xmax - xmin
+                    # h = ymax - ymin
+                    # x = xmin + w / 2
+                    # y = ymin + h / 2
+                    # bndboxs.append((x, y, w, h))
         elif isinstance(objects, dict):
             difficult = int(objects['difficult'])
 
@@ -59,11 +60,12 @@ def parse_location_xml(xml_path):
                 xmax = int(bndbox['xmax'])
                 ymax = int(bndbox['ymax'])
 
-                w = xmax - xmin
-                h = ymax - ymin
-                x = xmin + w / 2
-                y = ymin + h / 2
-                bndboxs.append((x, y, w, h))
+                bndboxs.append((xmin, ymin, xmax, ymax))
+                # w = xmax - xmin
+                # h = ymax - ymin
+                # x = xmin + w / 2
+                # y = ymin + h / 2
+                # bndboxs.append((x, y, w, h))
         else:
             pass
 
