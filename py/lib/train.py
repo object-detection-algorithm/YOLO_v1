@@ -14,7 +14,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
-from utils import util
+from utils import file
 from models.location_dataset import LocationDataset
 from models.yolo_v1 import YOLO_v1
 from models.multi_part_loss import MultiPartLoss
@@ -85,12 +85,14 @@ def train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epoc
             print('{} Loss: {:.4f}'.format(phase, epoch_loss))
 
             # deep copy the model
-            if running_loss > best_loss:
-                best_loss = running_loss
+            if epoch_loss < best_loss:
+                best_loss = epoch_loss
                 best_model_weights = copy.deepcopy(model.state_dict())
 
-                util.check_dir('../models')
-                util.save_checkpoint('../models/checkpoint_yolo_v1_%d.pth' % (epoch), epoch, model, optimizer, loss)
+                file.check_dir('../models')
+                # util.save_checkpoint('../models/checkpoint_yolo_v1_%d.pth' % (epoch), epoch, model, optimizer, loss)
+                file.save_model(model, '../models/checkpoint_yolo_v1_%d.pth' % (epoch))
+                print('save model')
 
         print()
 

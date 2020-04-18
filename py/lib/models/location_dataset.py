@@ -12,7 +12,7 @@ import os
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
-from utils import util
+from utils import file
 import torchvision.transforms as transforms
 
 cate_list = ['cucumber', 'eggplant', 'mushroom']
@@ -72,7 +72,7 @@ class LocationDataset(Dataset):
         grid_w = img_w / self.S
 
         target = torch.zeros((self.S * self.S, self.C + self.B * 5))
-        bndboxs, name_list = util.parse_location_xml(self.xml_path_list[index])
+        bndboxs, name_list = file.parse_location_xml(self.xml_path_list[index])
         # 缩放边界框坐标（x, y, w, h）
         bndboxs[:, 0] = bndboxs[:, 0] * ratio_w
         bndboxs[:, 1] = bndboxs[:, 1] * ratio_h
