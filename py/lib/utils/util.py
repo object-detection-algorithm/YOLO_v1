@@ -8,7 +8,6 @@
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def iou(pred_box, target_box):
@@ -43,10 +42,22 @@ def compute_ious(rects, bndboxs):
     return iou_list
 
 
-def plot_loss(loss_list):
-    x = list(range(len(loss_list)))
-    fg = plt.figure()
+def parse_output(outputs, S, B, C):
+    """
+    每个网格保存置信度最高的检测边界框
+    :param outputs: (N, S*S, B*5+C)
+    :return: probs, bboxs
+    probs: (N, S*S, C)
+    bboxs: (N, S*S, 5)
+    """
+    N = outputs.shape[0]
 
-    plt.plot(x, loss_list)
-    plt.title('loss')
-    plt.savefig('./loss.png')
+    probs = outputs[:, :, :C]
+    confidences = outputs[:, :, C:(C + B)].reshape(-1, B)
+    bboxs = outputs[:, :, (C + B):].reshape(-1, 4 * B)
+
+    idxs = torch.argmax(confidences, dim=1)
+
+    probs *= confidences[range(len(idxs)), idxs]
+    obj_boxs = bboxs[range(len(idxs)), idxs]
+    return probs, obj_boxs.reshape(N, S * S, -1)
