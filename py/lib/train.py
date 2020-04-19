@@ -89,11 +89,11 @@ def train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epoc
             # deep copy the model
             if epoch_loss < best_loss:
                 best_loss = epoch_loss
-                best_model_weights = copy.deepcopy(model.state_dict())
+                best_model_weights = copy.deepcopy(model.cpu().state_dict())
+                model = model.to(device)
 
                 file.check_dir('../models')
-                # util.save_checkpoint('../models/checkpoint_yolo_v1_%d.pth' % (epoch), epoch, model, optimizer, loss)
-                file.save_model(model, '../models/checkpoint_yolo_v1_%d.pth' % (epoch))
+                file.save_model(best_model_weights, '../models/checkpoint_yolo_v1_%d.pth' % (epoch))
                 print('save model')
 
         print()
