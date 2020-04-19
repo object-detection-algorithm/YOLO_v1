@@ -59,8 +59,8 @@ def load_data(img_path, xml_path):
     return img, data_dict
 
 
-def load_model():
-    model_path = './models/checkpoint_yolo_v1_24.pth'
+def load_model(device):
+    model_path = './models/checkpoint_yolo_v1_49.pth'
     model = YOLO_v1(S=7, B=2, C=3)
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     # device = "cpu"
 
     img, data_dict = load_data('../imgs/cucumber_9.jpg', '../imgs/cucumber_9.xml')
-    model = load_model()
+    model = load_model(device)
     # 计算
     outputs = model.forward(img.to(device)).cpu().squeeze(0)
     print(outputs.shape)
@@ -143,5 +143,5 @@ if __name__ == '__main__':
     pred_bboxs = deform_bboxs(pred_cate_bboxs, data_dict)
     # 在原图绘制标注边界框和预测边界框
     dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], data_dict['name_list'], pred_bboxs, pred_cates, pred_cate_probs)
-    cv2.imwrite('./detect.png', dst)
+    # cv2.imwrite('./detect.png', dst)
     draw.show(dst)
