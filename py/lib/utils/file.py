@@ -73,7 +73,7 @@ def parse_location_xml(xml_path):
 
 
 def save_model(model, model_save_path):
-    torch.save(model.state_dict(), model_save_path)
+    torch.save(model.state_dict().cpu(), model_save_path)
 
 
 def save_checkpoint(model_save_path, epoch, model, optimizer, loss):
