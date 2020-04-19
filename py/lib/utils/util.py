@@ -11,6 +11,10 @@ import numpy as np
 import torch
 
 
+def get_device():
+    return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+
 def iou(pred_box, target_box):
     """
     计算候选建议和标注边界框的IoU
