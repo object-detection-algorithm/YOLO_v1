@@ -59,7 +59,7 @@ def plot_bboxs(img, bndboxs, name_list, pred_boxs, pred_cates, pred_probs):
 
         xmin, ymin, xmax, ymax = np.array(bbox, dtype=np.int)
         cv2.rectangle(dst, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=1)
-        cv2.putText(dst, '%s_%f' % (cate_list[cate], prob), (xmin, ymax), 1, cv2.FONT_HERSHEY_PLAIN, (0, 0, 255),
+        cv2.putText(dst, '%s_%.3f' % (cate_list[cate], prob), (xmin, ymin), 1, cv2.FONT_HERSHEY_PLAIN, (0, 0, 255),
                     thickness=1)
 
     return dst

@@ -9,8 +9,6 @@
 
 import os
 import glob
-import time
-import shutil
 import cv2
 import numpy as np
 import torch
@@ -18,8 +16,7 @@ import torchvision.transforms as transforms
 
 from utils import file
 from utils import util
-from utils import draw
-from models.location_dataset import LocationDataset
+from utils import voc_map
 from models.yolo_v1 import YOLO_v1
 
 S = 7
@@ -27,6 +24,18 @@ B = 2
 C = 3
 
 cate_list = ['cucumber', 'eggplant', 'mushroom']
+
+dst_root_dir = './data/outputs'
+dst_target_dir = os.path.join(dst_root_dir, 'targets')
+dst_pred_dir = os.path.join(dst_root_dir, 'preds')
+dst_img_dir = os.path.join(dst_root_dir, 'imgs')
+tmp_json_dir = os.path.join(dst_root_dir, '.tmp_files')
+
+file.check_dir(dst_root_dir)
+file.check_dir(dst_target_dir)
+file.check_dir(dst_pred_dir)
+file.check_dir(dst_img_dir)
+file.check_dir(tmp_json_dir)
 
 
 def get_transform():
@@ -41,9 +50,11 @@ def get_transform():
 
 
 def load_data(root_dir):
-    img_path_list = glob.glob(os.path.join(root_dir, '*.jpg'))
-    annotation_path_list = [os.path.join(root_dir, os.path.splitext(os.path.basename(img_path))[0] + ".xml")
-                            for img_path in img_path_list]
+    img_path_list = glob.glob(os.path.join(root_dir, 'imgs', '*.jpg'))
+    img_path_list.sort()
+    annotation_path_list = [
+        os.path.join(root_dir, 'annotations', os.path.splitext(os.path.basename(img_path))[0] + ".xml")
+        for img_path in img_path_list]
 
     return img_path_list, annotation_path_list
 
@@ -137,16 +148,6 @@ def save_data(img_name, img, target_cates, target_bboxs, pred_cates, pred_probs,
     :param pred_probs: 预测边界框置信度
     :param pred_bboxs: 预测边界框坐标
     """
-    dst_root_dir = './data/outputs'
-    dst_target_dir = os.path.join(dst_root_dir, 'targets')
-    dst_pred_dir = os.path.join(dst_root_dir, 'preds')
-    dst_img_dir = os.path.join(dst_root_dir, 'imgs')
-
-    file.check_dir(dst_root_dir)
-    file.check_dir(dst_target_dir)
-    file.check_dir(dst_pred_dir)
-    file.check_dir(dst_img_dir)
-
     img_path = os.path.join(dst_img_dir, img_name + ".png")
     cv2.imwrite(img_path, img)
     annotation_path = os.path.join(dst_target_dir, img_name + ".txt")
@@ -176,7 +177,7 @@ if __name__ == '__main__':
     model = load_model(device)
 
     transform = get_transform()
-    img_path_list, annotation_path_list = load_data('./data/training_images')
+    img_path_list, annotation_path_list = load_data('./data/location_dataset')
     # print(img_path_list)
 
     N = len(img_path_list)
@@ -217,4 +218,5 @@ if __name__ == '__main__':
         img_name = os.path.splitext(os.path.basename(img_path))[0]
         save_data(img_name, data_dict['src'], data_dict['name_list'], data_dict['bndboxs'],
                   pred_cates, pred_cate_probs, pred_bboxs)
-    print('done')
+    print('compute mAP')
+    voc_map.voc_map(dst_target_dir, dst_pred_dir, tmp_json_dir)
