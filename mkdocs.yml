@@ -34,4 +34,5 @@ nav:
     - 数据集: '数据集.md'
     - YOLO模型: 'YOLO模型.md'
     - 损失函数: '损失函数.md'
-    - log: log.md
+    - 训练: '训练.md'
+    - 日志: 'log.md'

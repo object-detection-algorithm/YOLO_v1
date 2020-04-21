@@ -10,6 +10,8 @@
 4. 训练模型
 5. 计算`mAP`
 
+`50`轮训练完成后能够实现`99.01%`的`mAP`
+
 ## 相关链接
 
 * [You Only Look Once: Unified, Real-Time Object Detection](https://blog.zhujian.life/posts/256e06fe.html)
