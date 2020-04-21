@@ -30,3 +30,5 @@ extra_javascript:
 # 导航
 nav:
     - Home: index.md
+    - 架构解析: '架构解析.md'
+    - log: log.md
