@@ -32,5 +32,6 @@ nav:
     - Home: index.md
     - 架构解析: '架构解析.md'
     - 数据集: '数据集.md'
-    - 定义YOLO_v1模型: '定义YOLO_v1模型.md'
+    - YOLO模型: 'YOLO模型.md'
+    - 损失函数: '损失函数.md'
     - log: log.md
