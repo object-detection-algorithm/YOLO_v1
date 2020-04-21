@@ -110,7 +110,7 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # device = "cpu"
 
-    data_loader = load_data('../data/training_images', cate_list, S=S, B=B, C=C)
+    data_loader = load_data('../data/location_dataset', cate_list, S=S, B=B, C=C)
     # print(len(data_loader))
 
     model = YOLO_v1(S=S, B=B, C=C)
