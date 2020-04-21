@@ -39,8 +39,8 @@ class LocationDataset(Dataset):
         xml_path_list = []
         for name in cate_list:
             for i in range(1, 61):
-                jpeg_path_list.append(os.path.join(root_dir, '%s_%d.jpg' % (name, i)))
-                xml_path_list.append(os.path.join(root_dir, '%s_%d.xml' % (name, i)))
+                jpeg_path_list.append(os.path.join(root_dir, 'imgs', '%s_%d.jpg' % (name, i)))
+                xml_path_list.append(os.path.join(root_dir, 'annotations', '%s_%d.xml' % (name, i)))
         self.jpeg_path_list = jpeg_path_list
         self.xml_path_list = xml_path_list
 
@@ -128,7 +128,7 @@ class LocationDataset(Dataset):
 
 
 if __name__ == '__main__':
-    root_dir = '../../data/training_images/'
+    root_dir = '../../data/location_dataset/'
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize((448, 448)),
