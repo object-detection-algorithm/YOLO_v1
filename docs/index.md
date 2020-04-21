@@ -2,14 +2,6 @@
 
 实现`YOLO_v1`算法
 
-## 数据集
-
-使用`3`类定位数据集，参考[[数据集]Image Localization Dataset](https://blog.zhujian.life/posts/a2d65e1.html)
-
-```
-{'cucumber': 63, 'mushroom': 61, 'eggplant': 62}
-```
-
 ## 实现流程
 
 1. 创建训练数据集
