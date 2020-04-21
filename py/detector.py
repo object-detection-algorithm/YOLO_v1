@@ -60,7 +60,7 @@ def load_data(img_path, xml_path):
 
 
 def load_model(device):
-    model_path = './models/checkpoint_yolo_v1_49.pth'
+    model_path = './models/checkpoint_yolo_v1.pth'
     model = YOLO_v1(S=7, B=2, C=3)
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -110,8 +110,8 @@ def deform_bboxs(pred_bboxs, data_dict):
 
 
 if __name__ == '__main__':
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # device = "cpu"
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = "cpu"
 
     img, data_dict = load_data('../imgs/cucumber_9.jpg', '../imgs/cucumber_9.xml')
     model = load_model(device)
@@ -142,6 +142,9 @@ if __name__ == '__main__':
     # 预测边界框的缩放，回到原始图像
     pred_bboxs = deform_bboxs(pred_cate_bboxs, data_dict)
     # 在原图绘制标注边界框和预测边界框
-    dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], data_dict['name_list'], pred_bboxs, pred_cates, pred_cate_probs)
-    # cv2.imwrite('./detect.png', dst)
+    dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], data_dict['name_list'], pred_bboxs, pred_cates,
+                          pred_cate_probs)
+    cv2.imwrite('./detect.png', dst)
+    # BGR -> RGB
+    dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
     draw.show(dst)

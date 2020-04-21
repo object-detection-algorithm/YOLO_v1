@@ -77,7 +77,7 @@ def parse_data(img_path, xml_path, transform):
 
 
 def load_model(device):
-    model_path = './models/checkpoint_yolo_v1_49.pth'
+    model_path = './models/checkpoint_yolo_v1.pth'
     model = YOLO_v1(S=7, B=2, C=3)
     model.load_state_dict(torch.load(model_path))
     model.eval()
