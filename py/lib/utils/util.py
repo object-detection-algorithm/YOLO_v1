@@ -9,6 +9,12 @@
 
 import numpy as np
 import torch
+import sys
+
+
+def error(msg):
+    print(msg)
+    sys.exit(0)
 
 
 def get_device():
@@ -30,10 +36,10 @@ def iou(pred_box, target_box):
     xB = np.minimum(pred_box[2], target_box[:, 2])
     yB = np.minimum(pred_box[3], target_box[:, 3])
     # 计算交集面积
-    intersection = np.maximum(0.0, xB - xA) * np.maximum(0.0, yB - yA)
+    intersection = np.maximum(0.0, xB - xA + 1) * np.maximum(0.0, yB - yA + 1)
     # 计算两个边界框面积
-    boxAArea = (pred_box[2] - pred_box[0]) * (pred_box[3] - pred_box[1])
-    boxBArea = (target_box[:, 2] - target_box[:, 0]) * (target_box[:, 3] - target_box[:, 1])
+    boxAArea = (pred_box[2] - pred_box[0] + 1) * (pred_box[3] - pred_box[1] + 1)
+    boxBArea = (target_box[:, 2] - target_box[:, 0] + 1) * (target_box[:, 3] - target_box[:, 1] + 1)
 
     scores = intersection / (boxAArea + boxBArea - intersection)
     return scores
@@ -87,9 +93,9 @@ def bbox_corner_to_center(bboxs):
     tmp = np.zeros(bboxs.shape)
 
     # w
-    tmp[:, 2] = bboxs[:, 2] - bboxs[:, 0]
+    tmp[:, 2] = bboxs[:, 2] - bboxs[:, 0] + 1
     # h
-    tmp[:, 3] = bboxs[:, 3] - bboxs[:, 1]
+    tmp[:, 3] = bboxs[:, 3] - bboxs[:, 1] + 1
     # x_center
     tmp[:, 0] = bboxs[:, 0] + tmp[:, 2] / 2
     # y_center
