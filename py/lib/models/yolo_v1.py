@@ -86,7 +86,8 @@ class YOLO_v1(nn.Module):
 if __name__ == '__main__':
     # data = torch.randn((1, 3, 448, 448))
     data = torch.randn((1, 3, 224, 224))
-    model = YOLO_v1(7, 2, 3)
+    # model = YOLO_v1(7, 2, 3)
+    model = YOLO_v1(7, 2, 20)
 
     outputs = model(data)
     print(outputs.shape)

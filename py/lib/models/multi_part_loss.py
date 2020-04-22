@@ -329,15 +329,19 @@ def load_data(data_root_dir, cate_list, S=7, B=2, C=20):
 if __name__ == '__main__':
     S = 7
     B = 2
-    C = 3
-    cate_list = ['cucumber', 'eggplant', 'mushroom']
+    # C = 3
+    # cate_list = ['cucumber', 'eggplant', 'mushroom']
+    C = 20
+    cate_list = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
+                 'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
 
-    criterion = MultiPartLoss(448, 448, S=7, B=2, C=3)
+    criterion = MultiPartLoss(448, 448, S=S, B=B, C=C)
     # preds = torch.arange(637).reshape(1, 7 * 7, 13) * 0.01
     # targets = torch.ones((1, 7 * 7, 13)) * 0.01
     # loss = criterion(preds, targets)
     # print(loss)
-    data_loader = load_data('../../data/location_dataset', cate_list, S=S, B=B, C=C)
+    # data_loader = load_data('../../data/location_dataset', cate_list, S=S, B=B, C=C)
+    data_loader = load_data('../../data/VOC_dataset', cate_list, S=S, B=B, C=C)
     model = YOLO_v1(S=S, B=B, C=C)
 
     for inputs, labels in data_loader:

@@ -128,7 +128,8 @@ class LocationDataset(Dataset):
 
 
 if __name__ == '__main__':
-    root_dir = '../../data/location_dataset/'
+    # root_dir = '../../data/location_dataset/'
+    root_dir = '../../data/VOC_dataset/'
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize((448, 448)),
@@ -136,8 +137,11 @@ if __name__ == '__main__':
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-    cate_list = ['cucumber', 'eggplant', 'mushroom']
-    data_set = LocationDataset(root_dir, cate_list, transform, 7, 2, 3)
+    # cate_list = ['cucumber', 'eggplant', 'mushroom']
+    # data_set = LocationDataset(root_dir, cate_list, transform, 7, 2, 3)
+    cate_list = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
+                 'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
+    data_set = LocationDataset(root_dir, cate_list, transform, 7, 2, 20)
     print(data_set)
     print(len(data_set))
 

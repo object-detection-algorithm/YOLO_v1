@@ -21,9 +21,12 @@ from models.multi_part_loss import MultiPartLoss
 
 S = 7
 B = 2
-C = 3
 
-cate_list = ['cucumber', 'eggplant', 'mushroom']
+# C = 3
+# cate_list = ['cucumber', 'eggplant', 'mushroom']
+C = 20
+cate_list = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
+             'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
 
 
 def load_data(data_root_dir, cate_list, S=7, B=2, C=20):
