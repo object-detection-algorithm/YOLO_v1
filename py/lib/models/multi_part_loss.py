@@ -19,7 +19,7 @@ from models.yolo_v1 import YOLO_v1
 
 class MultiPartLoss(nn.Module):
 
-    def __init__(self, S=7, B=2, C=20, lambda_coord=5, lambda_noobj=0.5):
+    def __init__(self, img_w, img_h, S=7, B=2, C=20, lambda_coord=5, lambda_noobj=0.5):
         super(MultiPartLoss, self).__init__()
         self.S = S
         self.B = B
@@ -27,6 +27,12 @@ class MultiPartLoss(nn.Module):
 
         self.coord = lambda_coord
         self.noobj = lambda_noobj
+
+        self.img_w = img_w
+        self.img_h = img_h
+
+        self.grid_w = img_w / S
+        self.grid_h = img_h / S
 
     def forward(self, preds, targets):
         """
@@ -172,10 +178,8 @@ class MultiPartLoss(nn.Module):
         # [N, S*S, B] -> [N*S*S, B]
         pred_confidences = preds[:, :, self.C: (self.B + self.C)].reshape(-1, self.B)
         # 提取每个网格的预测边界框坐标
-        # [N, S*S, B*4] -> [N*S*S, B*4] -> [N*S*S, B, 4]
-        pred_bboxs = preds[:, :, (self.B + self.C): (self.B * 5 + self.C)] \
-            .reshape(-1, self.B * 4) \
-            .reshape(-1, self.B, 4)
+        # [N, S*S, B*4] -> [N, S*S, B, 4]
+        pred_bboxs = preds[:, :, (self.B + self.C): (self.B * 5 + self.C)].reshape(N, self.S * self.S, self.B, 4)
 
         ## 目标
         # 提取每个网格的分类概率
@@ -185,18 +189,20 @@ class MultiPartLoss(nn.Module):
         # [N, S*S, B] -> [N*S*S, B]
         target_confidences = targets[:, :, self.C: (self.B + self.C)].reshape(-1, self.B)
         # 提取每个网格的边界框坐标
-        # [N, S*S, B*4] -> [N*S*S, B*4] -> [N*S*S, B, 4]
-        target_bboxs = targets[:, :, (self.B + self.C): (self.B * 5 + self.C)] \
-            .reshape(-1, self.B * 4) \
-            .reshape(-1, self.B, 4)
+        # [N, S*S, B*4] -> [N, S*S, B, 4]
+        target_bboxs = targets[:, :, (self.B + self.C): (self.B * 5 + self.C)].reshape(N, self.S * self.S, self.B, 4)
 
         ## 首先计算所有边界框的置信度损失（假定不存在obj）
         loss = self.noobj * self.sum_squared_error(pred_confidences, target_confidences)
 
         # 计算每个预测边界框与对应目标边界框的IoU
-        iou_scores = self.iou(pred_bboxs.reshape(-1, 4), target_bboxs.reshape(-1, 4)).reshape(-1, 2)
+        # [N*S*S*B]
+        iou_scores = self.compute_ious(pred_bboxs.clone(), target_bboxs.clone())
+        # [N, S*S, B, 4] -> [N*S*S, B, 4]
+        pred_bboxs = pred_bboxs.reshape(-1, self.B, 4)
+        target_bboxs = target_bboxs.reshape(-1, self.B, 4)
         # 选取每个网格中IoU最高的边界框
-        top_idxs = torch.argmax(iou_scores, dim=1)
+        top_idxs = torch.argmax(iou_scores.reshape(-1, self.B), dim=1)
         top_len = len(top_idxs)
         # 获取相应的置信度以及边界框
         top_pred_confidences = pred_confidences[range(top_len), top_idxs]
@@ -247,6 +253,41 @@ class MultiPartLoss(nn.Module):
 
         return loss
 
+    def compute_ious(self, pred_boxs, target_boxs):
+        """
+        将边界框变形回标准化之前，然后计算IoU
+        :param pred_boxs: [N, S*S, B, 4]
+        :param target_boxs: [N, S*S, B, 4]
+        :return: [N*S*S*B]
+        """
+        N = pred_boxs.shape[0]
+        for i in range(N):
+            for j in range(self.S * self.S):
+                col = j % self.S
+                row = int(j / self.S)
+                for k in range(self.B):
+                    pred_box = pred_boxs[i, j, k]
+                    target_box = target_boxs[i, j, k]
+
+                    # 变形会标准化之前
+                    # x_center
+                    pred_box[0] = (pred_box[0] + col) * self.grid_w
+                    target_box[0] = (target_box[0] + col) * self.grid_w
+                    # y_center
+                    pred_box[1] = (pred_box[1] + row) * self.grid_h
+                    target_box[1] = (target_box[1] + row) * self.grid_h
+                    # w
+                    pred_box[2] = pred_box[2] * self.img_w
+                    target_box[2] = target_box[2] * self.img_w
+                    # h
+                    pred_box[3] = pred_box[3] * self.img_h
+                    target_box[3] = target_box[3] * self.img_h
+
+        pred_boxs = pred_boxs.reshape(-1, 4)
+        target_boxs = target_boxs.reshape(-1, 4)
+
+        return self.iou(pred_boxs, target_boxs)
+
     def iou(self, pred_boxs, target_boxs):
         """
         计算候选建议和标注边界框的IoU
@@ -291,7 +332,7 @@ if __name__ == '__main__':
     C = 3
     cate_list = ['cucumber', 'eggplant', 'mushroom']
 
-    criterion = MultiPartLoss(S=7, B=2, C=3)
+    criterion = MultiPartLoss(448, 448, S=7, B=2, C=3)
     # preds = torch.arange(637).reshape(1, 7 * 7, 13) * 0.01
     # targets = torch.ones((1, 7 * 7, 13)) * 0.01
     # loss = criterion(preds, targets)
