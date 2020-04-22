@@ -115,9 +115,9 @@ if __name__ == '__main__':
     model = YOLO_v1(S=S, B=B, C=C)
     model = model.to(device)
 
-    criterion = MultiPartLoss(S=S, B=B, C=C)
+    criterion = MultiPartLoss(448, 448, S=S, B=B, C=C)
     optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
-    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.9)
+    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.96)
 
     file.make_dir('../models')
     train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epochs=50, device=device)
