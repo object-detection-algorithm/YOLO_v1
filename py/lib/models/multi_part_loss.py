@@ -67,8 +67,10 @@ class MultiPartLoss(nn.Module):
         ## 首先计算所有边界框的置信度损失（假定不存在obj）
         loss = self.noobj * self.sum_squared_error(pred_confidences, target_confidences)
 
-        # 选取每个网格中置信度最高的边界框
-        top_idxs = torch.argmax(pred_confidences, dim=1)
+        # 计算每个预测边界框与对应目标边界框的IoU
+        iou_scores = self.iou(pred_bboxs.reshape(-1, 4), target_bboxs.reshape(-1, 4)).reshape(-1, 2)
+        # 选取每个网格中IoU最高的边界框
+        top_idxs = torch.argmax(iou_scores, dim=1)
         top_len = len(top_idxs)
         # 获取相应的置信度以及边界框
         top_pred_confidences = pred_confidences[range(top_len), top_idxs]
@@ -199,7 +201,7 @@ class MultiPartLoss(nn.Module):
         xB = np.minimum(pred_boxs[:, 0] + pred_boxs[:, 2] / 2, target_boxs[:, 0] + target_boxs[:, 2] / 2)
         yB = np.minimum(pred_boxs[:, 1] + pred_boxs[:, 3] / 2, target_boxs[:, 1] + target_boxs[:, 3] / 2)
         # 计算交集面积
-        intersection = np.maximum(0.0, xB - xA) * np.maximum(0.0, yB - yA)
+        intersection = np.maximum(0.0, xB - xA + 1) * np.maximum(0.0, yB - yA + 1)
         # 计算两个边界框面积
         boxAArea = pred_boxs[:, 2] * pred_boxs[:, 3]
         boxBArea = target_boxs[:, 2] * target_boxs[:, 3]
