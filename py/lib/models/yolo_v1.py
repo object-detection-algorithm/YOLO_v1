@@ -56,7 +56,7 @@ class YOLO_v1(nn.Module):
         )
         self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
         self.classifier = nn.Sequential(
-            nn.Dropout(),
+            # nn.Dropout(),
             nn.Linear(7 * 7 * 1024, 4096),
             nn.ReLU(inplace=True),
             nn.Linear(4096, S * S * (B * 5 + C))
