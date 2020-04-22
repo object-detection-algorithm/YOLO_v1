@@ -78,12 +78,12 @@ class MultiPartLoss(nn.Module):
 
         top_target_confidences = target_confidences[range(top_len), top_idxs]
         top_target_bboxs = target_bboxs[range(top_len), top_idxs]
-        print(top_pred_confidences.shape)
-        print(top_pred_bboxs.shape)
+        # print(top_pred_confidences.shape)
+        # print(top_pred_bboxs.shape)
 
         # 选取存在目标的网格
         obj_idxs = torch.sum(target_probs, dim=1) == 1
-        print(obj_idxs)
+        # print(obj_idxs)
 
         obj_pred_confidences = top_pred_confidences[obj_idxs]
         obj_pred_bboxs = top_pred_bboxs[obj_idxs]
