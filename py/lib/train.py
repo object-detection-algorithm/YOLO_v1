@@ -92,7 +92,6 @@ def train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epoc
                 best_model_weights = copy.deepcopy(model.cpu().state_dict())
                 model = model.to(device)
 
-                file.check_dir('../models')
                 file.save_model(best_model_weights, '../models/checkpoint_yolo_v1_%d.pth' % (epoch))
                 print('save model')
 
@@ -118,6 +117,7 @@ if __name__ == '__main__':
 
     criterion = MultiPartLoss(S=S, B=B, C=C)
     optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
-    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.96)
+    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.9)
 
+    file.make_dir('../models')
     train_model(data_loader, model, criterion, optimizer, lr_scheduler, num_epochs=50, device=device)

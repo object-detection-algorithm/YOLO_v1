@@ -16,10 +16,12 @@ import json
 import glob
 
 
-def check_dir(data_dir):
-    if os.path.exists(data_dir):
-        shutil.rmtree(data_dir)
-    os.mkdir(data_dir)
+def make_dir(data_dir, is_rm=False):
+    if is_rm:
+        if os.path.exists(data_dir):
+            shutil.rmtree(data_dir)
+    if not os.path.exists(data_dir):
+        os.mkdir(data_dir)
 
 
 def parse_location_xml(xml_path):

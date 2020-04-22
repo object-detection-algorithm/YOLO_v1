@@ -31,11 +31,11 @@ dst_pred_dir = os.path.join(dst_root_dir, 'preds')
 dst_img_dir = os.path.join(dst_root_dir, 'imgs')
 tmp_json_dir = os.path.join(dst_root_dir, '.tmp_files')
 
-file.check_dir(dst_root_dir)
-file.check_dir(dst_target_dir)
-file.check_dir(dst_pred_dir)
-file.check_dir(dst_img_dir)
-file.check_dir(tmp_json_dir)
+file.make_dir(dst_root_dir, is_rm=True)
+file.make_dir(dst_target_dir, is_rm=True)
+file.make_dir(dst_pred_dir, is_rm=True)
+file.make_dir(dst_img_dir, is_rm=True)
+file.make_dir(tmp_json_dir, is_rm=True)
 
 
 def get_transform():
