@@ -36,8 +36,13 @@ class LocationDataset(Dataset):
         self.C = C
         self.cate_list = cate_list
 
-        self.jpeg_path_list = glob.glob(os.path.join(root_dir, 'imgs', '*.jpg'))
-        self.xml_path_list = glob.glob(os.path.join(root_dir, 'annotations', '*.xml'))
+        jpeg_path_list = glob.glob(os.path.join(root_dir, 'imgs', '*.jpg'))
+        jpeg_path_list.sort()
+        xml_path_list = glob.glob(os.path.join(root_dir, 'annotations', '*.xml'))
+        xml_path_list.sort()
+
+        self.jpeg_path_list = jpeg_path_list
+        self.xml_path_list = xml_path_list
 
     def __getitem__(self, index):
         """
