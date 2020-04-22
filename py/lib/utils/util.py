@@ -124,6 +124,44 @@ def bbox_center_to_corner(bboxs):
     return tmp
 
 
+def deform_bboxs(pred_bboxs, data_dict, S):
+    """
+    :param pred_bboxs: [S*S, 4]
+    :return:
+    """
+    scale_h, scale_w = data_dict['scale_size']
+    grid_w = scale_w / S
+    grid_h = scale_h / S
+
+    bboxs = np.zeros(pred_bboxs.shape)
+    for i in range(S * S):
+        row = int(i / S)
+        col = int(i % S)
+
+        x_center, y_center, box_w, box_h = pred_bboxs[i]
+        bboxs[i, 0] = (col + x_center) * grid_w
+        bboxs[i, 1] = (row + y_center) * grid_h
+        bboxs[i, 2] = box_w * scale_w
+        bboxs[i, 3] = box_h * scale_h
+    # (x_center, y_center, w, h) -> (xmin, ymin, xmax, ymax)
+    bboxs = bbox_center_to_corner(bboxs)
+
+    ratio_h, ratio_w = data_dict['ratio']
+    bboxs[:, 0] /= ratio_w
+    bboxs[:, 1] /= ratio_h
+    bboxs[:, 2] /= ratio_w
+    bboxs[:, 3] /= ratio_h
+
+    # 最大最小值
+    h, w = data_dict['src_size']
+    bboxs[:, 0] = np.maximum(bboxs[:, 0], 0)
+    bboxs[:, 1] = np.maximum(bboxs[:, 1], 0)
+    bboxs[:, 2] = np.minimum(bboxs[:, 2], w)
+    bboxs[:, 3] = np.minimum(bboxs[:, 3], h)
+
+    return bboxs.astype(int)
+
+
 def nms(cates, probs, bboxs):
     """
     non-maximum suppression

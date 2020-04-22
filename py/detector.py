@@ -59,62 +59,12 @@ def load_data(img_path, xml_path):
     return img, data_dict
 
 
-def load_model(device):
-    model_path = './models/checkpoint_yolo_v1.pth'
-    model = YOLO_v1(S=7, B=2, C=3)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
-    for param in model.parameters():
-        param.requires_grad = False
-    model = model.to(device)
-
-    return model
-
-
-def deform_bboxs(pred_bboxs, data_dict):
-    """
-    :param pred_bboxs: [S*S, 4]
-    :return:
-    """
-    scale_h, scale_w = data_dict['scale_size']
-    grid_w = scale_w / S
-    grid_h = scale_h / S
-
-    bboxs = torch.zeros(pred_bboxs.shape)
-    for i in range(S * S):
-        row = int(i / S)
-        col = int(i % S)
-
-        x_center, y_center, box_w, box_h = pred_bboxs[i]
-        bboxs[i, 0] = (col + x_center) * grid_w
-        bboxs[i, 1] = (row + y_center) * grid_h
-        bboxs[i, 2] = box_w * scale_w
-        bboxs[i, 3] = box_h * scale_h
-    # (x_center, y_center, w, h) -> (xmin, ymin, xmax, ymax)
-    bboxs = util.bbox_center_to_corner(bboxs)
-
-    ratio_h, ratio_w = data_dict['ratio']
-    bboxs[:, 0] /= ratio_w
-    bboxs[:, 1] /= ratio_h
-    bboxs[:, 2] /= ratio_w
-    bboxs[:, 3] /= ratio_h
-
-    # 最大最小值
-    h, w = data_dict['src_size']
-    bboxs[:, 0] = np.maximum(bboxs[:, 0], 0)
-    bboxs[:, 1] = np.maximum(bboxs[:, 1], 0)
-    bboxs[:, 2] = np.minimum(bboxs[:, 2], w)
-    bboxs[:, 3] = np.minimum(bboxs[:, 3], h)
-
-    return np.array(bboxs, dtype=np.int)
-
-
 if __name__ == '__main__':
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     device = "cpu"
 
     img, data_dict = load_data('../imgs/cucumber_9.jpg', '../imgs/cucumber_9.xml')
-    model = load_model(device)
+    model = file.load_model(device, S, B, C)
     # 计算
     outputs = model.forward(img.to(device)).cpu().squeeze(0)
     print(outputs.shape)
@@ -140,7 +90,7 @@ if __name__ == '__main__':
     pred_cate_bboxs[:, 3] = pred_bboxs[range(S * S), pred_confidences_idxs * 4 + 3]
 
     # 预测边界框的缩放，回到原始图像
-    pred_bboxs = deform_bboxs(pred_cate_bboxs, data_dict)
+    pred_bboxs = util.deform_bboxs(pred_cate_bboxs, data_dict, S)
     # 在原图绘制标注边界框和预测边界框
     dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], data_dict['name_list'], pred_bboxs, pred_cates,
                           pred_cate_probs)

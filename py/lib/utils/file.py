@@ -14,6 +14,7 @@ import torch
 import shutil
 import json
 import glob
+from models.yolo_v1 import YOLO_v1
 
 
 def make_dir(data_dir, is_rm=False):
@@ -162,3 +163,15 @@ def save_checkpoint(model_save_path, epoch, model, optimizer, loss):
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss
     }, model_save_path)
+
+
+def load_model(device, S, B, C):
+    model_path = './models/checkpoint_yolo_v1.pth'
+    model = YOLO_v1(S=S, B=B, C=C)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+    for param in model.parameters():
+        param.requires_grad = False
+    model = model.to(device)
+
+    return model
