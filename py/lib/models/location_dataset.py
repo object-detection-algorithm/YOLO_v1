@@ -9,6 +9,7 @@
 
 import cv2
 import os
+import glob
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
@@ -35,14 +36,8 @@ class LocationDataset(Dataset):
         self.C = C
         self.cate_list = cate_list
 
-        jpeg_path_list = []
-        xml_path_list = []
-        for name in cate_list:
-            for i in range(1, 61):
-                jpeg_path_list.append(os.path.join(root_dir, 'imgs', '%s_%d.jpg' % (name, i)))
-                xml_path_list.append(os.path.join(root_dir, 'annotations', '%s_%d.xml' % (name, i)))
-        self.jpeg_path_list = jpeg_path_list
-        self.xml_path_list = xml_path_list
+        self.jpeg_path_list = glob.glob(os.path.join(root_dir, 'imgs', '*.jpg'))
+        self.xml_path_list = glob.glob(os.path.join(root_dir, 'annotations', '*.xml'))
 
     def __getitem__(self, index):
         """
@@ -146,8 +141,8 @@ if __name__ == '__main__':
     print(target.shape)
     print(target)
 
-    # data_loader = DataLoader(data_set, shuffle=True, batch_size=8, num_workers=8)
-    # items = next(iter(data_loader))
-    # inputs, labels = items
-    # print(inputs.shape)
-    # print(labels.shape)
+    data_loader = DataLoader(data_set, shuffle=True, batch_size=8, num_workers=8)
+    items = next(iter(data_loader))
+    inputs, labels = items
+    print(inputs.shape)
+    print(labels.shape)
