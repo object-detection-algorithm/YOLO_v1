@@ -10,10 +10,14 @@
 4. 训练模型
 5. 计算`mAP`
 
-对于`Location DataSet`, `50`轮训练完成后能够实现`97.31% mAP`
+## 训练结果
 
-对于`VOC 07`，`50`轮训练完成后能够实现`xxx mAP`以及`xxx FPS`
+* `mAP`
+    * 对于`Location DataSet`, `50`轮训练完成后能够实现`97.31% mAP`
+    * 对于`VOC 07`，`50`轮训练完成后能够实现`xxx mAP`
+* `FPS`
+    * `xxx`
 
-## 相关链接
+## 相关文档
 
-* [You Only Look Once: Unified, Real-Time Object Detection](https://blog.zhujian.life/posts/256e06fe.html)
+* [学习 - You Only Look Once: Unified, Real-Time Object Detection](https://blog.zhujian.life/posts/256e06fe.html)
