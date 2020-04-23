@@ -14,9 +14,7 @@
 
 * `mAP`
     * 对于`Location DataSet`, `50`轮训练完成后能够实现`97.31% mAP`
-    * 对于`VOC 07`，`50`轮训练完成后能够实现`xxx mAP`
-* `FPS`
-    * `xxx`
+    * 对于`VOC 07(train+val)`，`50`轮训练完成后能够实现`75.25% mAP`
 
 ![](./imgs/detect_car.png)
 

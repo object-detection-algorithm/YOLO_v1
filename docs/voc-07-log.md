@@ -4,7 +4,29 @@
 ## 检测结果
 
 ```
-。。。
+compute mAP
+{'bus': 229, 'person': 4690, 'boat': 290, 'dog': 510, 'horse': 362, 'aeroplane': 306, 'chair': 798, 'bottle': 505, 'cat': 376, 'diningtable': 215, 'motorbike': 339, 'bird': 486, 'pottedplant': 514, 'bicycle': 353, 'sheep': 257, 'cow': 259, 'tvmonitor': 324, 'car': 1250, 'train': 297, 'sofa': 248}
+78.50% = aeroplane AP 
+69.27% = bicycle AP 
+73.40% = bird AP 
+74.93% = boat AP 
+62.74% = bottle AP 
+83.17% = bus AP 
+73.59% = car AP 
+86.30% = cat AP 
+72.41% = chair AP 
+77.80% = cow AP 
+72.07% = diningtable AP 
+84.35% = dog AP 
+75.40% = horse AP 
+74.01% = motorbike AP 
+70.48% = person AP 
+70.45% = pottedplant AP 
+68.00% = sheep AP 
+75.76% = sofa AP 
+84.15% = train AP 
+78.23% = tvmonitor AP 
+mAP = 75.25%
 ```
 
 ## 训练日志
