@@ -21,7 +21,12 @@ from models.yolo_v1 import YOLO_v1
 
 S = 7
 B = 2
-C = 3
+# C = 3
+# cate_list = ['cucumber', 'eggplant', 'mushroom']
+
+C = 20
+cate_list = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
+             'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
 
 
 def load_data(img_path, xml_path):
@@ -63,7 +68,9 @@ if __name__ == '__main__':
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     device = "cpu"
 
-    img, data_dict = load_data('../imgs/cucumber_9.jpg', '../imgs/cucumber_9.xml')
+    # img, data_dict = load_data('../imgs/cucumber_9.jpg', '../imgs/cucumber_9.xml')
+    # img, data_dict = load_data('../imgs/000012.jpg', '../imgs/000012.xml')
+    img, data_dict = load_data('../imgs/000007.jpg', '../imgs/000007.xml')
     model = file.load_model(device, S, B, C)
     # 计算
     outputs = model.forward(img.to(device)).cpu().squeeze(0)
@@ -92,8 +99,8 @@ if __name__ == '__main__':
     # 预测边界框的缩放，回到原始图像
     pred_bboxs = util.deform_bboxs(pred_cate_bboxs, data_dict, S)
     # 在原图绘制标注边界框和预测边界框
-    dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], data_dict['name_list'], pred_bboxs, pred_cates,
-                          pred_cate_probs)
+    dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], data_dict['name_list'], cate_list,
+                          pred_bboxs, pred_cates, pred_cate_probs)
     cv2.imwrite('./detect.png', dst)
     # BGR -> RGB
     dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)

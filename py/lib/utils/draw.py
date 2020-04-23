@@ -12,9 +12,6 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-cate_list = ['cucumber', 'eggplant', 'mushroom']
-
-
 def plot_loss(loss_list):
     x = list(range(len(loss_list)))
     fg = plt.figure()
@@ -38,7 +35,7 @@ def plot_box(img, bndboxs, name_list):
     return dst
 
 
-def plot_bboxs(img, bndboxs, name_list, pred_boxs, pred_cates, pred_probs):
+def plot_bboxs(img, bndboxs, name_list, cate_list, pred_boxs, pred_cates, pred_probs):
     dst = copy.deepcopy(img)
 
     for i in range(len(name_list)):
