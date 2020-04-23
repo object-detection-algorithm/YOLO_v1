@@ -28,7 +28,7 @@ C = 20
 cate_list = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
              'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
 
-dst_root_dir = './data/outputs'
+dst_root_dir = '../../data/outputs'
 dst_target_dir = os.path.join(dst_root_dir, 'targets')
 dst_pred_dir = os.path.join(dst_root_dir, 'preds')
 dst_img_dir = os.path.join(dst_root_dir, 'imgs')
@@ -130,8 +130,8 @@ if __name__ == '__main__':
     model = file.load_model(device, S, B, C)
 
     transform = get_transform()
-    # img_path_list, annotation_path_list = load_data('./data/location_dataset')
-    img_path_list, annotation_path_list = load_data('./data/VOC_dataset')
+    # img_path_list, annotation_path_list = load_data('./../data/location_dataset')
+    img_path_list, annotation_path_list = load_data('../../data/VOC_dataset')
     # print(img_path_list)
 
     N = len(img_path_list)
