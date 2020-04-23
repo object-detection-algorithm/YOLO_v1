@@ -21,9 +21,12 @@ from models.yolo_v1 import YOLO_v1
 
 S = 7
 B = 2
-C = 3
+# C = 3
+# cate_list = ['cucumber', 'eggplant', 'mushroom']
 
-cate_list = ['cucumber', 'eggplant', 'mushroom']
+C = 20
+cate_list = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',
+             'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
 
 dst_root_dir = './data/outputs'
 dst_target_dir = os.path.join(dst_root_dir, 'targets')
@@ -127,7 +130,8 @@ if __name__ == '__main__':
     model = file.load_model(device, S, B, C)
 
     transform = get_transform()
-    img_path_list, annotation_path_list = load_data('./data/location_dataset')
+    # img_path_list, annotation_path_list = load_data('./data/location_dataset')
+    img_path_list, annotation_path_list = load_data('./data/VOC_dataset')
     # print(img_path_list)
 
     N = len(img_path_list)
@@ -162,7 +166,7 @@ if __name__ == '__main__':
         pred_cate_bboxs[:, 3] = pred_bboxs[range(S * S), pred_confidences_idxs * 4 + 3]
 
         # 预测边界框的缩放，回到原始图像
-        pred_bboxs = util.deform_bboxs(pred_cate_bboxs, data_dict)
+        pred_bboxs = util.deform_bboxs(pred_cate_bboxs, data_dict, S)
 
         # 保存图像/标注边界框/预测边界框
         img_name = os.path.splitext(os.path.basename(img_path))[0]
