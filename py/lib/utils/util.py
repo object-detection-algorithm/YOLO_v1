@@ -162,12 +162,48 @@ def deform_bboxs(pred_bboxs, data_dict, S):
     return bboxs.astype(int)
 
 
-def nms(cates, probs, bboxs):
+def nms(rect_list, score_list, cate_list, thresh=0.3):
     """
-    non-maximum suppression
-    :param cates:
-    :param probs:
-    :param bboxs:
-    :return:
+    非最大抑制
+    :param rect_list: list，大小为[N, 4]
+    :param score_list： list，大小为[N]
+    :param cate_list: list, 大小为[N]
     """
-    pass
+    nms_rects = list()
+    nms_scores = list()
+    nms_cates = list()
+
+    rect_array = np.array(rect_list)
+    score_array = np.array(score_list)
+    cate_array = np.array(cate_list)
+
+    # 一次排序后即可
+    # 按分类概率从大到小排序
+    idxs = np.argsort(score_array)[::-1]
+    rect_array = rect_array[idxs]
+    score_array = score_array[idxs]
+    cate_array = cate_array[idxs]
+
+    while len(score_array) > 0:
+        # 添加分类概率最大的边界框
+        nms_rects.append(rect_array[0])
+        nms_scores.append(score_array[0])
+        nms_cates.append(cate_array[0])
+        rect_array = rect_array[1:]
+        score_array = score_array[1:]
+        cate_array = cate_array[1:]
+
+        length = len(score_array)
+        if length <= 0:
+            break
+
+        # 计算IoU
+        iou_scores = iou(np.array(nms_rects[len(nms_rects) - 1]), rect_array)
+        # print(iou_scores)
+        # 去除重叠率大于等于thresh的边界框
+        idxs = np.where(iou_scores < thresh)[0]
+        rect_array = rect_array[idxs]
+        score_array = score_array[idxs]
+        cate_array = cate_array[idxs]
+
+    return nms_rects, nms_scores, nms_cates

@@ -69,8 +69,7 @@ if __name__ == '__main__':
     device = "cpu"
 
     # img, data_dict = load_data('../imgs/cucumber_9.jpg', '../imgs/cucumber_9.xml')
-    # img, data_dict = load_data('../imgs/000012.jpg', '../imgs/000012.xml')
-    img, data_dict = load_data('../imgs/000007.jpg', '../imgs/000007.xml')
+    img, data_dict = load_data('../imgs/000012.jpg', '../imgs/000012.xml')
     model = file.load_model(device, S, B, C)
     # 计算
     outputs = model.forward(img.to(device)).cpu().squeeze(0)
@@ -98,6 +97,8 @@ if __name__ == '__main__':
 
     # 预测边界框的缩放，回到原始图像
     pred_bboxs = util.deform_bboxs(pred_cate_bboxs, data_dict, S)
+
+    nms_rects, nms_scores, nms_cates = util.nms(pred_bboxs, pred_cate_probs, pred_cates)
     # 在原图绘制标注边界框和预测边界框
     dst = draw.plot_bboxs(data_dict['src'], data_dict['bndboxs'], data_dict['name_list'], cate_list,
                           pred_bboxs, pred_cates, pred_cate_probs)
