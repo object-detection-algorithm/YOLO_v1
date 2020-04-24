@@ -26,6 +26,13 @@
 $ pip install -r requirements.txt
 ```
 
+### Python库依赖
+
+```
+$ cd py
+$ pip install -r requirements.txt
+```
+
 ## 用法
 
 ### 文档浏览
