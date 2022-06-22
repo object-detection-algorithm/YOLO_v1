@@ -14,7 +14,7 @@ matplotlib == 3.1.2
 # lib/utils/file.py: 12
 # lib/utils/util.py: 10
 # lib/utils/voc_map.py: 14
-numpy == 1.17.2
+numpy == 1.22.0
 
 # batch_detect.py: 14
 # detector.py: 13
